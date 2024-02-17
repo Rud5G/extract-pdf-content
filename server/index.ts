@@ -1,8 +1,5 @@
-const pdfjs = require('pdfjs-dist/es5/build/pdf')
-const _ = require("lodash")
-
-const path = require('path');
-const fs = require('fs');
+import pdfjs from "pdfjs-dist/es5/build/pdf";
+import _ from "lodash";
 
 async function getContent(src) {
     const doc = await pdfjs.getDocument(src).promise
@@ -38,22 +35,6 @@ function handleErrors(error) {
     console.log(error)
 }
 
-const directoryPath = path.join(__dirname, '..', '..', 'pdf', 'notas', '2023');
-
-//passsing directoryPath and callback function
-fs.readdir(directoryPath, function (err, files) {
-    //handling error
-    if (err) {
-        return console.log('Unable to scan directory: ' + err);
-    }
-    //listing all files using forEach
-    files.forEach(function (file) {
-        // Do whatever you want to do with the file
-        console.log(`${directoryPath}/${file}`);
-
-
-        getItems(`${directoryPath}/${file}`)
-            .then(processItems)
-            .catch(handleErrors)
-    });
-});
+getItems("./notas/2023/01-test-2023.pdf")
+    .then(processItems)
+    .catch(handleErrors)
