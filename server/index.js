@@ -8,15 +8,15 @@ const fs = require('fs');
 
 
 
-async function getContent(src) {
-    const doc = await pdfjs.getDocument({url: src, verbosity: 0}).promise
-    const page = await doc.getPage(1) // if doc has many pages use doc.numPages to iterate and pass index to doc.getPage
-    return await page.getTextContent()
+async function getPageContent(doc, pageNumber = 1) {
+    const page = await doc.getPage(pageNumber) // if doc has many pages use doc.numPages to iterate and pass index to doc.getPage
+    return await page.getTextContent();
 }
 
 async function getItems(src) {
     // Perform pre-processing
-    const content = await getContent(src);
+    const doc = await pdfjs.getDocument({url: src, verbosity: 0}).promise
+    const content = await getPageContent(doc);
 
     return content.items
         .filter((item) => item.str.trim().length)
@@ -26,14 +26,15 @@ async function getItems(src) {
 
 
 function processItems(items) {
-    const records = _.chunk(items, 6)
-        .reduce((records, [id, date, amount, description, reconciled, transaction_type]) => {
-            records.push({ id, date, amount, description, reconciled, transaction_type })
-            return records
-        }, [])
-
     // save json or save csv or write to db
-    console.log(JSON.stringify(records));
+    return _.chunk(items, 6).
+      reduce((
+        records,
+        [id, date, amount, description, reconciled, transaction_type]) => {
+          records.push(
+            { id, date, amount, description, reconciled, transaction_type })
+          return records
+      }, []);
 }
 
 function handleErrors(error) {
@@ -43,19 +44,33 @@ function handleErrors(error) {
 
 const directoryPath = path.join(__dirname, '..', '..', 'pdf', 'notas', '2023');
 
+function outputItems (records, file = 'a file') {
+
+    // file
+    console.log(
+      JSON.stringify({
+          filename: file,
+          records: records
+      })
+    );
+}
+
 //passsing directoryPath and callback function
 fs.readdir(directoryPath, function (err, files) {
     //handling error
     if (err) {
         return console.log('Unable to scan directory: ' + err);
     }
-    //listing all files using forEach
+
+
+    // listing all files using forEach
     files.forEach(function (file) {
         // Do whatever you want to do with the file
         //console.log(`${directoryPath}/${file}`);
 
         getItems(`${directoryPath}/${file}`)
             .then(processItems)
+            .then((result) => outputItems(result, file))
             .catch(handleErrors)
             .finally(() => {
                 exit(0);
