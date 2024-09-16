@@ -16,5 +16,10 @@
   "dependencies": {
     "lodash": "^4.17.20",
     "pdfjs-dist": "^2.6.347"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.202",
+    "@types/pdfjs-dist": "^2.10.378",
+    "typescript": "^5.3.3"
   }
 }
